@@ -1,10 +1,6 @@
 const url = 'https://www.youtube.com/watch?v=1FliVTcX8bQ';
 
 const ytdl = require('ytdl-core');
-const Qualities = [
-  'AUDIO_QUALITY_MEDIUM',
-  'AUDIO_QUALITY_LOW',
-]
 
 const express = require('express');
 const app = express();
@@ -22,16 +18,25 @@ app.get('/', (req, res) => {
 })
 
 app.get('/download', (req, res) => {
-  setTimeout(() => {
-    fs.readFile(__dirname+'/video.mp3', (err ,data) => {
-      res.writeHead(200, {'Content-Type': 'audio/mp3'});
-      res.write(data);
-      res.end();
-    })
-  }, 15000);
+  // setTimeout(() => {
+  //   fs.readFile(__dirname+'/video.mp3', (err ,data) => {
+  //     res.writeHead(200, {'Content-Type': 'audio/mp3'});
+  //     res.write(data);
+  //     res.end();
+  //   })
+  // }, 1000);
     
-  ytdl(url, {filter:'audioonly'}).pipe(fs.createWriteStream('video.mp3'))
-
+  const video = async function(url) {
+    await new Promise((resolve) => {
+      ytdl(url, {filter:'audioonly'})
+      .pipe(fs.createWriteStream('video.mp3'))
+      .on('close', () => {
+        resolve('finish');
+      })
+    })
+    res.sendFile(__dirname + '/video.mp3'); 
+  }
+  video(url);
 })
 
 app.listen(3000)
