@@ -7,6 +7,7 @@ const app = express();
 const cors = require('cors');
 const { response } = require('express');
 const fs = require('fs');
+const path = require('path');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({
@@ -18,25 +19,24 @@ app.get('/', (req, res) => {
 })
 
 app.get('/download', (req, res) => {
-  // setTimeout(() => {
-  //   fs.readFile(__dirname+'/video.mp3', (err ,data) => {
-  //     res.writeHead(200, {'Content-Type': 'audio/mp3'});
-  //     res.write(data);
-  //     res.end();
-  //   })
-  // }, 1000);
-    
+  const url = req.query.url;
+  const path1 = __dirname + '/video.mp3';  
   const video = async function(url) {
+    
     await new Promise((resolve) => {
       ytdl(url, {filter:'audioonly'})
       .pipe(fs.createWriteStream('video.mp3'))
       .on('close', () => {
+        res.sendFile(path1);
         resolve('finish');
       })
     })
-    res.sendFile(__dirname + '/video.mp3'); 
   }
-  video(url);
+  video(url).then(() => {
+    setTimeout(() => {
+      fs.rmSync(path1);
+    });
+  });
 })
 
 app.listen(3000)
